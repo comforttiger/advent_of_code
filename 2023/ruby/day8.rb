@@ -7,25 +7,6 @@ INPUT = "inputs/8#{gets.chomp}".freeze
 print 'part 1 or 2? '
 PART = gets.chomp
 
-# Node class, has a node to its left and right.
-class Node
-  include Comparable
-  attr_reader :value
-  attr_accessor :left, :right
-
-  def initialize(value, left, right)
-    @value = value
-    @left = left
-    @right = right
-  end
-
-  def <=>(other)
-    return @value <=> other.value if other.instance_variable_defined?(:@value)
-
-    @value <=> other
-  end
-end
-
 # get first line of input and split it into separate instructions
 def instructions = File.open(INPUT).first.chomp.split('')
 
@@ -35,7 +16,7 @@ def nodes
   File.readlines(INPUT).drop(2).each do |line|
     node, left, right = line.gsub(/[(]|[)]|,|=/, '').split
 
-    nodes.store(node, Node.new(node, left, right))
+    nodes[node] = { left:, right: }
   end
   nodes
 end
@@ -43,14 +24,14 @@ end
 # counts steps until node satisfies a condition.
 # &condition lets us pass a block to this method, like {_1 == 'ZZZ' } for part 1
 def count_steps(nodes, instructions, start, &condition)
-  current_node = nodes[start]
+  current_node = start
   steps = 0
   loop do
     instructions.each do |instruction|
       return steps if condition.call(current_node)
 
-      current_node = nodes[current_node.left] if instruction == 'L'
-      current_node = nodes[current_node.right] if instruction == 'R'
+      current_node = nodes[current_node][:left] if instruction == 'L'
+      current_node = nodes[current_node][:right] if instruction == 'R'
       steps += 1
     end
   end
@@ -67,7 +48,7 @@ end
 # but i wouldnt have figured it out without reddit.
 def traverse_multiple(nodes, instructions)
   nodes.keys.filter { _1.end_with?('A') }.map do |node|
-    count_steps(nodes, instructions, node) { _1.value.end_with?('Z') }
+    count_steps(nodes, instructions, node) { _1.end_with?('Z') }
   end.reduce(&:lcm)
 end
 
