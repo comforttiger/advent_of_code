@@ -25,15 +25,10 @@ end
 # &condition lets us pass a block to this method, like {_1 == 'ZZZ' } for part 1
 def count_steps(nodes, instructions, start, &condition)
   current_node = start
-  steps = 0
-  loop do
-    instructions.each do |instruction|
-      return steps if condition.call(current_node)
-
-      current_node = nodes[current_node][:left] if instruction == 'L'
-      current_node = nodes[current_node][:right] if instruction == 'R'
-      steps += 1
-    end
+  instructions.cycle.with_index do |instruction, step|
+    current_node = nodes[current_node][:left] if instruction == 'L'
+    current_node = nodes[current_node][:right] if instruction == 'R'
+    return step + 1 if condition.call(current_node)
   end
 end
 
