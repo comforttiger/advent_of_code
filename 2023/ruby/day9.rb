@@ -29,7 +29,7 @@ end
 
 def sum_history_values
   sum = 0
-  File.foreach(INPUT, chomp: true) do |line|
+  File.foreach(INPUT) do |line|
     sum += history_value(get_differences(line.split.map(&:to_i)))
   end
   sum
