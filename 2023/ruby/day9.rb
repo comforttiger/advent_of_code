@@ -8,13 +8,7 @@ PART = gets.chomp
 
 def get_differences(values)
   all_differences = [values]
-  until all_differences[-1].uniq == [0]
-    differences = []
-    all_differences[-1].each.with_index do |number, index|
-      differences.push(number - all_differences[-1][index - 1]) unless index.zero?
-    end
-    all_differences.push(differences)
-  end
+  all_differences.push(all_differences[-1].each_cons(2).map { _2 - _1 }) until all_differences[-1].all?(&:zero?)
   all_differences
 end
 
