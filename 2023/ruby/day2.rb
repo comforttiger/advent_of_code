@@ -1,51 +1,41 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-def cube_too_big?(line)
-  line.each do |cubes|
-    amount = cubes.split[0].to_i
-    color = cubes.split[1]
+def game_impossible?(line)
+  amounts = biggest_cubes(line)
+  return true if amounts[0] > 12 || amounts[1] > 13 || amounts[2] > 14
 
-    case color
-    when 'red'
-      return true if amount > 12
-    when 'green'
-      return true if amount > 13
-    when 'blue'
-      return true if amount > 14
-    end
-  end
   false
 end
 
-def get_biggest_cube(cubes, color)
-  biggest = 0
+def biggest_cubes(cubes)
+  amounts = [[], [], []]
   cubes.each do |cube|
     amount = cube.split[0].to_i
-    cube_color = cube.split[1]
-    biggest = [biggest, amount].max if color == cube_color
+    color = cube.split[1]
+    amounts[0].push(amount) if color == 'red'
+    amounts[1].push(amount) if color == 'green'
+    amounts[2].push(amount) if color == 'blue'
   end
-  biggest
+  amounts.map(&:max)
 end
 
-def part1(input)
-  i = 1
+def sum_impossible_games(input)
   sum = 0
-  File.foreach(input) do |line|
-    sum += i unless cube_too_big?(line.split(':')[1].gsub!(';', ',').split(','))
-    i += 1
+  File.foreach(input).with_index do |line, index|
+    sum += index + 1 unless game_impossible?(line.split(':')[1].gsub!(';', ',').split(','))
   end
   sum
 end
 
-def part2(input)
+def sum_possible_games(input)
   sum = 0
   File.foreach(input) do |line|
     cubes = line.split(':')[1].gsub!(';', ',').split(',')
-    sum += get_biggest_cube(cubes, 'red') * get_biggest_cube(cubes, 'green') * get_biggest_cube(cubes, 'blue')
+    sum += biggest_cubes(cubes).reduce(:*)
   end
   sum
 end
 
-puts part1('inputs/2')
-puts part2('inputs/2')
+puts sum_impossible_games('inputs/2')
+puts sum_possible_games('inputs/2')

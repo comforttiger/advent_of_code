@@ -8,10 +8,8 @@ def split_into_maps(input) = File.read(input).split('map:').drop(1)
 def get_seeds_ranges(input)
   seeds = []
   ranges = File.readlines(input)[0].split.drop(1).map(&:to_i)
-  start = 0
-  ranges.each_with_index do |number, index|
-    start = number if index.even?
-    seeds.push((start..start + number - 1)) if index.odd?
+  ranges.each_slice(2) do |start, length|
+    seeds.push(start..start + length - 1)
   end
   seeds
 end

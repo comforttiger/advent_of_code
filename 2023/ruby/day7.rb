@@ -10,7 +10,7 @@ JOKER_HIERARCHY = %w[J 2 3 4 5 6 7 8 9 T Q K A].freeze
 INPUT = 'inputs/7'
 
 # true for part 2, false for part 1.
-JOKER = false
+JOKER = true
 
 # class that represents each hand of cards
 class Hand
@@ -21,9 +21,9 @@ class Hand
     @cards = cards
     @bid = bid
     @type = if JOKER
-              type_of_joker_edition(@cards)
+              type_of(@cards, JOKER_HIERARCHY.drop(1))
             else
-              type_of(@cards)
+              type_of(@cards, HIERARCHY)
             end
   end
 
@@ -68,54 +68,35 @@ class String
 end
 
 # return type (1-7)
-def type_of(hand)
-  cards_in_hand = Array.new(13)
-  hand.each do |card|
-    cards_in_hand[HIERARCHY.index(card.value)] = 0 unless cards_in_hand[HIERARCHY.index(card.value)]
-    cards_in_hand[HIERARCHY.index(card.value)] += 1 if cards_in_hand[HIERARCHY.index(card.value)]
-  end
-  cards_in_hand.delete(nil)
-  tally_cards(cards_in_hand)
+def type_of(hand, hierarchy)
+  tally_cards(card_counts(hand, hierarchy))
 end
 
-# rubocop:disable Metrics
-def type_of_joker_edition(hand)
-  cards_in_hand = Array.new(12)
-  jokers = 0
+def card_counts(hand, hierarchy)
+  cards_in_hand = Array.new(13, 0)
+  cards_in_hand.pop if JOKER
   hand.each do |card|
-    if card.value == 'J'
-      jokers += 1
-      next
-    end
-    cards_in_hand[JOKER_HIERARCHY.index(card.value) - 1] = 0 unless cards_in_hand[JOKER_HIERARCHY.index(card.value) - 1]
-    cards_in_hand[JOKER_HIERARCHY.index(card.value) - 1] += 1 if cards_in_hand[JOKER_HIERARCHY.index(card.value) - 1]
-  end
-  cards_in_hand.delete(nil)
-  return 7 if jokers == 5
+    next if card.value == 'J' && JOKER
 
-  cards_in_hand[cards_in_hand.index(cards_in_hand.max)] += jokers
-  tally_cards(cards_in_hand)
+    cards_in_hand[hierarchy.index(card.value)] += 1
+  end
+  cards_in_hand.delete(0)
+  return [5] if cards_in_hand.empty?
+
+  cards_in_hand[cards_in_hand.index(cards_in_hand.max)] += 5 - cards_in_hand.reduce(:+)
+  cards_in_hand
 end
 
 def tally_cards(cards)
-  case cards.tally
-  when { 5 => 1 } # five of a kind
-    7
-  when { 4 => 1, 1 => 1 } # four of a kind
-    6
-  when { 3 => 1, 2 => 1 } # full house
-    5
-  when { 3 => 1, 1 => 2 } # three of a kind
-    4
-  when { 2 => 2, 1 => 1 } # two pair
-    3
-  when { 2 => 1, 1 => 3 } # one pair
-    2
-  else # high card
-    1
-  end
+  cards = cards.sort.reverse
+  return cards[0] + 2 if cards[0] > 3
+  return 5 if cards == [3, 2]
+  return 4 if cards == [3, 1, 1]
+  return 3 if cards == [2, 2, 1]
+  return 2 if cards == [2, 1, 1, 1]
+
+  1
 end
-# rubocop:enable Metrics
 
 # parse input file into array of hands
 def parse
